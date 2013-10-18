@@ -1,3 +1,4 @@
+require 'pry'
 # Encoding is heavely based off of ICS format
 # http://www.ietf.org/rfc/rfc2445.txt
 # 4.3.10 Recurrence Rule
@@ -5,6 +6,9 @@
 #
 # duration - ics assumes start/end dates to figure out how long an event should be and how to repeat it. I'm changing it a little by having a duration in days. My approach is for the schedule to define when something is DUE, and then duration should be how many days the inspector has to do it. I think the due date is more important then when it should be started.
  
+Event = Struct.new(:start_date, :end_date) do
+end
+
 class Schedule
 
   attr_accessor :id
@@ -17,6 +21,8 @@ class Schedule
   # attr_accessor :by_month # integer representing mo in year
   attr_accessor :wkst # defines when the week starts (defaults to Monday) - can't currently change
   attr_accessor :duration # breaking from ics a little here (see above)
+
+  attr_accessor :start_date # when this should go into effect
 
   # set the defaults
   def initialize
@@ -110,6 +116,7 @@ class Schedule
     end
 
     @duration = params[:duration].to_i if params[:duration]
+    @start_date = params[:start_date]
   end
   
   # Check to see if it is valid
@@ -281,7 +288,7 @@ class Schedule
 
   # Finds the next occurance of the schedule as long as it is between the two dates
   # TODO: Possible refactoring, pass in first_occurance, not start_date
-  def next_date(start_date, after_date)
+  def next_date(after_date)
     # puts "\\nnext_date - start(#{start_date}) after(#{after_date})"
     first_occurrence = next_occurrence(start_date,true)
     # puts "  the first occurance is: #{first_occurrence}"
@@ -299,9 +306,27 @@ class Schedule
       # Find the first group for this event happened
       first_group = first_group(first_occurrence)
       # puts "  found first group (#{first_group}) now calling recursively"
-      next_date(start_date, next_group(first_group, after_date))
+      next_date(next_group(first_group, after_date))
     end
   end
 
   # be able to grab the next x occurances after a given time
+  def events_between(date_start, date_end)
+
+    events = []
+    current_date = date_start
+
+    while current_date <= date_end
+      current_date = next_date(current_date)
+      if current_date <= date_end
+        events << Event.new(current_date, current_date + duration)
+      end
+      # add one day so it doesn't return the same day
+      # probably shouldn't need to do this
+      current_date += 1 
+    end
+
+    events
+  end
+
 end

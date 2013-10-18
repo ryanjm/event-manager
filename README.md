@@ -66,9 +66,15 @@ I'd love for you to help out with the project. Please see the [Contributing](CON
 
 There are some rspec tests already written.
 
-```
+```bash
 $ bundle
 $ rspec test
+```
+
+If you want to see some "examples" of it run:
+
+```bash
+$ rspec examples
 ```
 
 ## Similar Projects
