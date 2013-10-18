@@ -1,5 +1,5 @@
-require './schedule_todo.rb'
-require './schedule.rb'
+require_relative 'schedule_todo.rb'
+require_relative 'schedule.rb'
 
 # This would relate a given schedule to a inspection_strucutre object. For now I'm going to leave it off, except to create a unique ID for it.
 

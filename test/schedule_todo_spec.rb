@@ -1,4 +1,4 @@
-require './spec/spec_helper.rb'
+require './test/spec_helper.rb'
 
 describe ScheduleTodo do
   describe "#=" do

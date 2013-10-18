@@ -62,6 +62,15 @@ event.next_event_after(date)
 
 I'd love for you to help out with the project. Please see the [Contributing](CONTRIBUTING.md) section.
 
+## Running Tests
+
+There are some rspec tests already written.
+
+```
+$ bundle
+$ rspec test
+```
+
 ## Similar Projects
 
 As far as I know these are the only other projects that are some what similar (for those looking for the best solution).

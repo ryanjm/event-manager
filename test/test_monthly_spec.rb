@@ -1,4 +1,4 @@
-require './spec/spec_helper.rb'
+require './test/spec_helper.rb'
 
 #      March 2013
 # Su Mo Tu We Th Fr Sa

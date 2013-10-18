@@ -1,6 +1,6 @@
-require './schedule.rb'
-require './schedule_item.rb'
-require './schedule_todo.rb'
+require './lib/event_manager/schedule.rb'
+require './lib/event_manager/schedule_item.rb'
+require './lib/event_manager/schedule_todo.rb'
 require 'date'
 
 def make_dates(dates)

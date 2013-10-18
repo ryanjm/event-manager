@@ -1,4 +1,4 @@
-require './spec/spec_helper.rb'
+require './test/spec_helper.rb'
 # should be able to ask when the next occurance of that scheudle is, after a given date
 # given ScheduleItems, should be able to find if a scheduleItem is already created for an occurance (and structure) 
 
