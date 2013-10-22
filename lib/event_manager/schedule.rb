@@ -12,7 +12,6 @@ end
 class Schedule
 
   attr_accessor :id
-  attr_accessor :name
   attr_accessor :freq # identifies type of recurrance (required)
   attr_accessor :interval # how often to repeat (positive value, default = 1)
   attr_accessor :by_day # list of days, with possible value in front
@@ -90,14 +89,12 @@ class Schedule
 
   # Take params from a form and build the needed attributes
   # Possible attributes:
-  # name - name for schedule
   # freq - type of schedule, "weekly" or "monthly"
   # interval - how often the frequency should repeat
   # days_of_week - array of days the schedule gets applys to (ie ["Mo","We"])
   # days_of_week_offset - how to offset the days of the week, just a single number
   # duration - how long someone has to complete the task (0 = due same day)
   def create(params)
-    @name = params[:name] if params[:name]
 
     if (params[:freq] && FREQ.include?(params[:freq].to_sym))
       @freq = params[:freq].to_sym
@@ -310,7 +307,7 @@ class Schedule
     end
   end
 
-  # be able to grab the next x occurances after a given time
+  # be able to grab the next occurances after (and including) date_start and before date_end
   def events_between(date_start, date_end)
 
     events = []
