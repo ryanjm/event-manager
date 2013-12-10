@@ -10,7 +10,6 @@ It is HIGHLY suggested to read through the entire section before reading this co
 
 TO-DOs:
 
-- Should probably use better naming conventions. Using +encode+ and +decode+ would be a good starter.
 - Better names for variables, such as start_date. Though I do want to stick with ICS where appropriate.
 
 == Attributes
@@ -75,7 +74,7 @@ class Schedule
   #
   # Returns a string format of the array.
   #   i.e. '2mo,2we'
-  def convert_by_day(days_of_week, offset = '')
+  def encode_by_day(days_of_week, offset = '')
     selected_days = days_of_week.map do |day|
       d = day.downcase.to_sym
       DAYS.include?(d) ? (offset + d.to_s) : nil
@@ -83,7 +82,7 @@ class Schedule
     selected_days.compact.join(",")
   end
 
-  def convert_by_month_day(days_of_month)
+  def encode_by_month_day(days_of_month)
     selected_days = days_of_month.map do |day|
       day.to_i != 0 ? day : nil
     end
@@ -154,13 +153,13 @@ class Schedule
     @interval = params[:interval].to_i if params[:interval]
 
     if params[:days_of_week] && params[:days_of_week_offset]
-      @by_day = convert_by_day(params[:days_of_week], params[:days_of_week_offset])
+      @by_day = encode_by_day(params[:days_of_week], params[:days_of_week_offset])
     elsif params[:days_of_week]
-      @by_day = convert_by_day(params[:days_of_week])
+      @by_day = encode_by_day(params[:days_of_week])
     end
 
     if params[:days_of_month]
-      @by_month_day = convert_by_month_day(params[:days_of_month])
+      @by_month_day = encode_by_month_day(params[:days_of_month])
     end
 
     @duration = params[:duration].to_i if params[:duration]
@@ -212,7 +211,7 @@ class Schedule
   # Examples:
   # 'mo' => [[1,1]]
   # 'mo,we,fr' => [[1,1],[1,3],[1,5]]
-  def translate_by_day
+  def decode_by_day
     days = @by_day.split(',')
     days.map do |day|
       if day.length == 2
@@ -227,7 +226,7 @@ class Schedule
 
   ##
   # Used for the +:weekly+ and +:monthly+ frequencies. This 
-  # takes the output of +translate_by_day+, sorts it, and then
+  # takes the output of +decode_by_day+, sorts it, and then
   # returns the index of the first day in the group.
   #
   # This normally shouldn't _need_ to do anything. They should 
@@ -236,10 +235,10 @@ class Schedule
   #
   # == Return
   #
-  # Returns the index of the first day in +translate_by_day+
+  # Returns the index of the first day in +decode_by_day+
   def first_day
     if @freq == :weekly || (@freq == :monthly && @by_day)
-      days = translate_by_day
+      days = decode_by_day
       first_day = days.sort {|x,y| x[1] <=> y[1] }.first
       days.index(first_day)
     end
@@ -267,7 +266,7 @@ class Schedule
   def next_occurrence(start_date, continue=false)
     if @freq == :weekly
       wday = start_date.wday
-      days = translate_by_day # i.e. [[1,1]] - 
+      days = decode_by_day # i.e. [[1,1]] - 
       # we want the first occurance where wday <= given day
       # example: schedule is [:mo,:we,:fr]
       # days = [[1,1],[1,3],[1,5]]
@@ -293,7 +292,7 @@ class Schedule
       # go through each of the days and 
       # return if it is greater than start_date
       # else ask if it needs to go to the following month (recursion)
-      days = translate_by_day
+      days = decode_by_day
       days.each do |d|
         # puts "  looking for #{d}"
         day_in_month = day_of_month(start_date.year,start_date.month,*d)
@@ -370,14 +369,14 @@ class Schedule
   def first_group(start_date)
     if @freq == :weekly
       # Grab the first wday within the schedule
-      wday = translate_by_day[first_day][1]
+      wday = decode_by_day[first_day][1]
       # Based off the start date add the number of days it takes to get to 
       # the correct week day.
       # i.e. start_date is Friday (5) and wday is Monday(1)
       # start_date + (1 - 5) = Friday - 4 = Monday of that week.
       start_date + (wday - start_date.wday)
     # elsif @freq == :monthly
-    #   day = translate_by_day[first_day]
+    #   day = decode_by_day[first_day]
     #   day_of_month(start_date.year,start_date.month,*day)
     end
   end

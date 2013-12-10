@@ -5,24 +5,24 @@ require './test/spec_helper.rb'
 # should handle if the options are invalid (crossing weekly, modifiers cross)
 
 describe Schedule do
-  describe "#convert_by_day" do
+  describe "#encode_by_day" do
     before(:each) do
       @schedule = Schedule.new
     end
 
     it "takes an one day and returns a simple string" do
       days = ["Mo"]
-      r = @schedule.convert_by_day(days)
+      r = @schedule.encode_by_day(days)
       r.should eq('mo')
     end
     it "takes an multiple days and returns a simple string" do
       days = ["Mo","We"]
-      r = @schedule.convert_by_day(days)
+      r = @schedule.encode_by_day(days)
       r.should eq('mo,we')
     end
     it "should handle an offset" do
       days = ["Mo","We"]
-      r = @schedule.convert_by_day(days,'2')
+      r = @schedule.encode_by_day(days,'2')
       r.should eq('2mo,2we')
     end
   end
@@ -498,21 +498,21 @@ describe Schedule do
     end
   end
 
-  describe "#translate_by_day" do
+  describe "#decode_by_day" do
     it "converts simple days" do
       s = Schedule.new
       s.by_day = 'mo'
-      s.translate_by_day.should eq([[1,1]])
+      s.decode_by_day.should eq([[1,1]])
     end
     it "converts simple days multiple days" do
       s = Schedule.new
       s.by_day = 'mo,we,fr'
-      s.translate_by_day.should eq([[1,1],[1,3],[1,5]])
+      s.decode_by_day.should eq([[1,1],[1,3],[1,5]])
     end
     it "converts complex days" do
       s = Schedule.new
       s.by_day = '1mo,-2we' # no an option, but handles two cases
-      s.translate_by_day.should eq([[1,1],[-2,3]])
+      s.decode_by_day.should eq([[1,1],[-2,3]])
     end
   end
 
