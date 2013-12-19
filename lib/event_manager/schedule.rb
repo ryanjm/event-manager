@@ -10,8 +10,6 @@ It is HIGHLY suggested to read through the entire section before reading this co
 
 TODO:
 
-- Add ability to give events_between a start date
-
 == Attributes
 
 [freq]          identifies type of recurrance. i.e. :daily, :weekly, :monthly (required)
@@ -68,9 +66,9 @@ class Schedule
   # == Return
   #
   # Returns a date of when the next event happens after the search date.
-  def next_date(after_date)
+  def next_date(after_date, start = event_start)
     # puts "\\nnext_date - start(#{event_start}) after(#{after_date})"
-    first_occurrence = next_occurrence(event_start,true)
+    first_occurrence = next_occurrence(start,true)
     # puts "  the first occurance is: #{first_occurrence}"
 
     if after_date < first_occurrence
@@ -103,13 +101,13 @@ class Schedule
   # Returns an array of +Event+ structs each having +event_start+ 
   # and +end_date+. These events will happen on or after the +date_start+
   # and before +date_end+.
-  def events_between(date_start, date_end)
+  def events_between(date_start, date_end, start = event_start)
 
     events = []
     current_date = date_start
 
     while current_date <= date_end
-      current_date = next_date(current_date)
+      current_date = next_date(current_date, start)
       if current_date <= date_end
         event = {start_date: current_date, end_date: current_date + duration}
         yield(event) if block_given?

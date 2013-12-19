@@ -664,6 +664,28 @@ describe Schedule do
         events[4][:start_date].should eq(we2)
         events[5][:start_date].should eq(fr2)
       end
+
+      it "creates todos between two dates, with ad-hoc start date" do
+        event_start = Date.new(2013,3,3)
+        end_date = Date.new(2013,3,17)
+        ad_hoc_start = Date.new(2013,3,5)
+        
+        events = @schedule.events_between(event_start,end_date, ad_hoc_start)
+
+        we1 = Date.new(2013,3,6)
+        fr1 = Date.new(2013,3,8)
+
+        mo2 = Date.new(2013,3,11)
+        we2 = Date.new(2013,3,13)
+        fr2 = Date.new(2013,3,15)
+
+        events.length.should eq(5)
+        events[0][:start_date].should eq(we1)
+        events[1][:start_date].should eq(fr1)
+        events[2][:start_date].should eq(mo2)
+        events[3][:start_date].should eq(we2)
+        events[4][:start_date].should eq(fr2)
+      end
     end
   end
 end
