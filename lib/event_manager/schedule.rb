@@ -66,7 +66,7 @@ class Schedule
   # == Return
   #
   # Returns a date of when the next event happens after the search date.
-  def next_date(after_date, start = event_start)
+  def next_event_after(after_date, start = event_start)
     first_occurrence = next_occurrence(start,true)
 
     if after_date < first_occurrence
@@ -80,7 +80,7 @@ class Schedule
     else
       # Find the first group for this event happened
       first_group = first_group(first_occurrence)
-      next_date(next_group(first_group, after_date))
+      next_event_after(next_group(first_group, after_date))
     end
   end
 
@@ -103,7 +103,7 @@ class Schedule
     current_date = date_start
 
     while current_date <= date_end
-      current_date = next_date(current_date, start)
+      current_date = next_event_after(current_date, start)
       if current_date <= date_end
         event = {start_date: current_date, end_date: current_date + duration}
         yield(event) if block_given?
