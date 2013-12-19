@@ -1,8 +1,7 @@
 require './lib/event_manager/schedule.rb'
-require 'date'
 
 def make_dates(dates)
-  dates.map {|d| Date.new(2013,d[0],d[1]) }
+  dates.map {|d| DateTime.new(2013,d[0],d[1]) }
 end
 
 def test_schedule(params,opts,tests)

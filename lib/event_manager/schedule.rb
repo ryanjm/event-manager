@@ -1,4 +1,5 @@
-require 'pry'
+require 'active_support/core_ext/time/calculations'
+
 =begin rdoc
 
 This handles all of the logic right now.
@@ -7,8 +8,6 @@ Encoding is heavely based off of ICS format
 http://www.ietf.org/rfc/rfc2445.txt
 4.3.10 Recurrence Rule
 It is HIGHLY suggested to read through the entire section before reading this code. By sticking closely to the ICS format, we should be able to easily expand out the options if we want to handle more cases.
-
-TODO:
 
 == Attributes
 
@@ -46,6 +45,7 @@ class Schedule
     @wkst = :mo
     @id = rand(100)
     @duration = 0 # 1 day
+    @event_start = DateTime.new
   end
 
   # The list of frequencies currently supported
@@ -67,12 +67,9 @@ class Schedule
   #
   # Returns a date of when the next event happens after the search date.
   def next_date(after_date, start = event_start)
-    # puts "\\nnext_date - start(#{event_start}) after(#{after_date})"
     first_occurrence = next_occurrence(start,true)
-    # puts "  the first occurance is: #{first_occurrence}"
 
     if after_date < first_occurrence
-      # puts "  return the first_occurrence"
       first_occurrence
     elsif n = next_occurrence(after_date)
       n
@@ -83,7 +80,6 @@ class Schedule
     else
       # Find the first group for this event happened
       first_group = first_group(first_occurrence)
-      # puts "  found first group (#{first_group}) now calling recursively"
       next_date(next_group(first_group, after_date))
     end
   end
@@ -170,10 +166,10 @@ class Schedule
   # == Return
   #
   # Returns a day that satisfies the offset and wday.
-  def day_of_month(year,month,offset,wday)
-    first = Date.new(year,month) # first day of month
-    last = Date.new(year,month).next_month - 1 # grab the last day
-    if offset > 0
+  def day_of_month(year,month,offset,wday, tz_offset = event_start.offset)
+    first = DateTime.new(year,month,1,0,0,0, tz_offset) # first day of month
+    last = DateTime.new(year,month,1,0,0,0, tz_offset).next_month - 1 # grab the last day
+    if offset > 0 
       # offset to get to the right wday
       wday_offset = wday - first.wday
       # if the start of the week is actually greater, then add 7 to to first instance
@@ -185,7 +181,7 @@ class Schedule
       if answer.month == month
         answer
       else
-        day_of_month(year,month,-1,wday)
+        day_of_month(year,month,-1,wday, tz_offset)
       end
     else
       # offset to get to the right wday
@@ -199,7 +195,7 @@ class Schedule
       if answer.month == month
         answer
       else
-        day_of_month(year,month,1,wday)
+        day_of_month(year,month,1,wday, tz_offset)
       end
     end
   end
@@ -329,86 +325,72 @@ class Schedule
   # It will return the date of the next time an event will happen within 
   # the frequency. If it doesn't find one it will return +nil+, unless 
   # +continue+ is true, in which case it will go to the next frequency.
-  def next_occurrence(event_start, continue=false)
+  def next_occurrence(start, continue=false)
     if @freq == :weekly
-      wday = event_start.wday
+      wday = start.wday
       days = decode_by_day # i.e. [[1,1]] - 
       # we want the first occurance where wday <= given day
       # example: schedule is [:mo,:we,:fr]
       # days = [[1,1],[1,3],[1,5]]
-      # if our event_start is Sunday (wday=0), we want to stop on Monday (0 <= 1)
-      # if our event_start is Tuesday (wday=2), we want to stop on Wednesday ( 2 <= 3)
-      # if our event_start is Saturday (wday=6), we want the following Monday
+      # if our start is Sunday (wday=0), we want to stop on Monday (0 <= 1)
+      # if our start is Tuesday (wday=2), we want to stop on Wednesday ( 2 <= 3)
+      # if our start is Saturday (wday=6), we want the following Monday
       day_index = days.index { |day| wday <= day[1] }
       # if it is nil, we want the earliest day of the week
       if continue && day_index.nil?
         # I'd like to assume they are in order, but is that guaranteed?
         day_index = first_day
-        # We then need to bump up the event_start a week
-        event_start+=7
+        # We then need to bump up the start a week
+        start+=7
       elsif day_index.nil?
         return nil
       end
       # day will be the wday of the first matching date
       day = days[day_index][1]
-      # we want to return the event_start plus the number of days till the firt match
-      event_start + (day - wday)
+      # we want to return the start plus the number of days till the firt match
+      start + (day - wday)
     elsif @freq == :monthly && @by_day
-      # Given the event_start we can grab month/year
+      # Given the start we can grab month/year
       # go through each of the days and 
-      # return if it is greater than event_start
+      # return if it is greater than start
       # else ask if it needs to go to the following month (recursion)
       days = decode_by_day
       days.each do |d|
-        # puts "  looking for #{d}"
-        day_in_month = day_of_month(event_start.year,event_start.month,*d)
-        return day_in_month if day_in_month >= event_start
+        day_in_month = day_of_month(start.year,start.month,*d, start.offset) # star to break array into two attributes
+        return day_in_month if day_in_month >= start
       end
       # if it didn't find a match, then ask if it needs to continue
       if continue
         # Call the next month
-        next_month = Date.new(event_start.year,event_start.month+1)
+        next_month = DateTime.new(start.year,start.month+1,1,0,0,0, start.offset)
         self.next_occurrence(next_month, continue)
       else
         nil
       end
     elsif @freq == :monthly && @by_month_day
-      # Given event_start we know the day of month and we loop around 
+      # Given start we know the day of month and we loop around 
       # by_month_day until we find one bigger (unless negative). If not, retun nil unless continue = true, 
       # in which case, grab the first one from by_month, and get it from the next month
-      start_days_in_month = days_in_month(event_start.month, event_start.year)
-      neg_start = event_start.mday - start_days_in_month
+      start_days_in_month = Time.days_in_month(start.month, start.year)
+      neg_start = start.mday - start_days_in_month
       month_days = @by_month_day.split(',').map(&:to_i).sort
       day_index = month_days.index do |mday| 
         if mday < 0
           # handle negatives
           neg_start <= mday
         else
-          event_start.mday <= mday
+          start.mday <= mday
         end
       end
       if !day_index.nil?
         day = month_days[day_index]
-        Date.new(event_start.year, event_start.month, day)
+        DateTime.new(start.year, start.month, day,0,0,0, start.offset)
       elsif continue
-        Date.new(event_start.year, event_start.month+1, month_days.first)
+        DateTime.new(start.year, start.month+1, month_days.first,0,0,0, start.offset)
       else
         nil
       end
     end
-  end
-
-  # This is a hack - this is from ActiveSupport, when we integrate with Rails we should just use that method
-  COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-  ##
-  # Returns how many days are in the month.
-  #
-  # This is a Rails method, so I won't add documentation for it 
-  # (this should be removed later).
-  def days_in_month(month, year = Time.now.year)
-     return 29 if month == 2 && Date.gregorian_leap?(year)
-     COMMON_YEAR_DAYS_IN_MONTH[month]
   end
 
   ##

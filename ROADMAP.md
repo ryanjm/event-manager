@@ -4,8 +4,6 @@ This kind of serves as a general TO-DO list and a small projection of where the 
 
 ## Currently working on v0.0.1
 
-The main goal for this version is to get everything laid out and the tests passing as-is. No Rails-specific functionality yet.
-
 ## v0.0.2
 
 The goal here is to clean up the API and be able to publish this as a gem.
@@ -18,8 +16,6 @@ The goal here is to clean up the API and be able to publish this as a gem.
 
 ## v0.0.3
 
-- Move everything from `Date` objects to `DateTime`
-- Provide an option hash on `next_event_after` and `events_between` in order to specify a different `start_event`
 
 ## v0.1.0
 
