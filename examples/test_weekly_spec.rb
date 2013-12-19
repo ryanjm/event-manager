@@ -25,7 +25,7 @@ describe "Weekly Schedules" do
         interval: '1',
         days_of_week: ['Mo'],
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
@@ -41,7 +41,7 @@ describe "Weekly Schedules" do
         interval: '1',
         days_of_week: ['We'],
         duration: '1',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
@@ -57,7 +57,7 @@ describe "Weekly Schedules" do
         interval: '1',
         days_of_week: ['Mo','We'],
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
@@ -75,7 +75,7 @@ describe "Weekly Schedules" do
         interval: '2',
         days_of_week: ['Mo','We'],
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)

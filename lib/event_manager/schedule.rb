@@ -8,9 +8,10 @@ http://www.ietf.org/rfc/rfc2445.txt
 4.3.10 Recurrence Rule
 It is HIGHLY suggested to read through the entire section before reading this code. By sticking closely to the ICS format, we should be able to easily expand out the options if we want to handle more cases.
 
-TO-DOs:
+TODO:
 
-- Better names for variables, such as start_date. Though I do want to stick with ICS where appropriate.
+- Add ability to use a block for events_between
+- Add ability to give events_between a date
 
 == Attributes
 
@@ -26,12 +27,9 @@ TO-DOs:
                   an event should be and how to repeat it. I'm changing it a little by having a 
                   duration in _days_. My approach is for the schedule to define when something is 
                   DUE, and then duration should be how many days the event is. 
-[start_date]    when this schedule should go into effect.
+[event_start]    when this schedule should go into effect.
  
 =end
-
-Event = Struct.new(:start_date, :end_date) do
-end
 
 class Schedule
 
@@ -42,7 +40,7 @@ class Schedule
   attr_accessor :wkst
   attr_accessor :duration
 
-  attr_accessor :start_date
+  attr_accessor :event_start
 
   ##
   # set the default values
@@ -58,6 +56,75 @@ class Schedule
 
   # List of days of week
   DAYS = [:su, :mo, :tu, :we, :th, :fr, :sa]
+
+  ##
+  # Finds the next occurance of the schedule as long as it is between the two dates.
+  #
+  # This is invisioned to be a public method.
+  # 
+  # == Attributes
+  #
+  # [+after_date+]  Date which to search after.
+  #
+  # == Return
+  #
+  # Returns a date of when the next event happens after the search date.
+  def next_date(after_date)
+    # puts "\\nnext_date - start(#{event_start}) after(#{after_date})"
+    first_occurrence = next_occurrence(event_start,true)
+    # puts "  the first occurance is: #{first_occurrence}"
+
+    if after_date < first_occurrence
+      # puts "  return the first_occurrence"
+      first_occurrence
+    elsif n = next_occurrence(after_date)
+      n
+    # I don't like having this type of conditional here, but 
+    # `first_group` and `next_group` don't make sense for :monthly
+    elsif @freq == :monthly
+      next_occurrence(after_date,true)
+    else
+      # Find the first group for this event happened
+      first_group = first_group(first_occurrence)
+      # puts "  found first group (#{first_group}) now calling recursively"
+      next_date(next_group(first_group, after_date))
+    end
+  end
+
+  ##
+  # Get a list of events that happen between two dates.
+  #
+  # == Attributes
+  #
+  # [+date_start+]  Date on which you want the search to start.
+  # [+date_end+]    Date when you want the search to stop.
+  #
+  # == Return
+  #
+  # Returns an array of +Event+ structs each having +event_start+ 
+  # and +end_date+. These events will happen on or after the +date_start+
+  # and before +date_end+.
+  def events_between(date_start, date_end)
+
+    events = []
+    current_date = date_start
+
+    while current_date <= date_end
+      current_date = next_date(current_date)
+      if current_date <= date_end
+        events << {start_date: current_date, end_date: current_date + duration}
+      end
+      # add one day so it doesn't return the same day
+      # probably shouldn't need to do this
+      current_date += 1 
+    end
+
+    events
+  end
+
+  # At some point everything below this should be private
+  # private
+
 
   ##
   # Encodes the days_of_week so that it can be saved to database.
@@ -163,7 +230,7 @@ class Schedule
     end
 
     @duration = params[:duration].to_i if params[:duration]
-    @start_date = params[:start_date]
+    @event_start = params[:event_start]
   end
   
   ##
@@ -254,7 +321,7 @@ class Schedule
   #
   # == Attributes
   #
-  # [+start_date+]  What date to search after.
+  # [+event_start+]  What date to search after.
   # [+continue+]    This option is if it should look into the following 
   #                   freq or not (i.ee look at the next week). 
   #
@@ -263,69 +330,69 @@ class Schedule
   # It will return the date of the next time an event will happen within 
   # the frequency. If it doesn't find one it will return +nil+, unless 
   # +continue+ is true, in which case it will go to the next frequency.
-  def next_occurrence(start_date, continue=false)
+  def next_occurrence(event_start, continue=false)
     if @freq == :weekly
-      wday = start_date.wday
+      wday = event_start.wday
       days = decode_by_day # i.e. [[1,1]] - 
       # we want the first occurance where wday <= given day
       # example: schedule is [:mo,:we,:fr]
       # days = [[1,1],[1,3],[1,5]]
-      # if our start_date is Sunday (wday=0), we want to stop on Monday (0 <= 1)
-      # if our start_date is Tuesday (wday=2), we want to stop on Wednesday ( 2 <= 3)
-      # if our start_date is Saturday (wday=6), we want the following Monday
+      # if our event_start is Sunday (wday=0), we want to stop on Monday (0 <= 1)
+      # if our event_start is Tuesday (wday=2), we want to stop on Wednesday ( 2 <= 3)
+      # if our event_start is Saturday (wday=6), we want the following Monday
       day_index = days.index { |day| wday <= day[1] }
       # if it is nil, we want the earliest day of the week
       if continue && day_index.nil?
         # I'd like to assume they are in order, but is that guaranteed?
         day_index = first_day
-        # We then need to bump up the start_date a week
-        start_date+=7
+        # We then need to bump up the event_start a week
+        event_start+=7
       elsif day_index.nil?
         return nil
       end
       # day will be the wday of the first matching date
       day = days[day_index][1]
-      # we want to return the start_date plus the number of days till the firt match
-      start_date + (day - wday)
+      # we want to return the event_start plus the number of days till the firt match
+      event_start + (day - wday)
     elsif @freq == :monthly && @by_day
-      # Given the start_date we can grab month/year
+      # Given the event_start we can grab month/year
       # go through each of the days and 
-      # return if it is greater than start_date
+      # return if it is greater than event_start
       # else ask if it needs to go to the following month (recursion)
       days = decode_by_day
       days.each do |d|
         # puts "  looking for #{d}"
-        day_in_month = day_of_month(start_date.year,start_date.month,*d)
-        return day_in_month if day_in_month >= start_date
+        day_in_month = day_of_month(event_start.year,event_start.month,*d)
+        return day_in_month if day_in_month >= event_start
       end
       # if it didn't find a match, then ask if it needs to continue
       if continue
         # Call the next month
-        next_month = Date.new(start_date.year,start_date.month+1)
+        next_month = Date.new(event_start.year,event_start.month+1)
         self.next_occurrence(next_month, continue)
       else
         nil
       end
     elsif @freq == :monthly && @by_month_day
-      # Given start_date we know the day of month and we loop around 
+      # Given event_start we know the day of month and we loop around 
       # by_month_day until we find one bigger (unless negative). If not, retun nil unless continue = true, 
       # in which case, grab the first one from by_month, and get it from the next month
-      start_days_in_month = days_in_month(start_date.month, start_date.year)
-      neg_start = start_date.mday - start_days_in_month
+      start_days_in_month = days_in_month(event_start.month, event_start.year)
+      neg_start = event_start.mday - start_days_in_month
       month_days = @by_month_day.split(',').map(&:to_i).sort
       day_index = month_days.index do |mday| 
         if mday < 0
           # handle negatives
           neg_start <= mday
         else
-          start_date.mday <= mday
+          event_start.mday <= mday
         end
       end
       if !day_index.nil?
         day = month_days[day_index]
-        Date.new(start_date.year, start_date.month, day)
+        Date.new(event_start.year, event_start.month, day)
       elsif continue
-        Date.new(start_date.year, start_date.month+1, month_days.first)
+        Date.new(event_start.year, event_start.month+1, month_days.first)
       else
         nil
       end
@@ -353,31 +420,31 @@ class Schedule
   # edge cases. Totally up for restructuring the logic for these methods.
   #
   # TODO: looks like there might be an edge case that isn't being handled.
-  # This could return a date that is _before_ your +start_date+. That is if 
+  # This could return a date that is _before_ your +event_start+. That is if 
   # it is MWF and you give it Saturday, it will give you Monday of that week.
   # Therefore when you use this method, you should have to check to see
-  # if it is infact greater than +start_date+, if not, then find the next 
+  # if it is infact greater than +event_start+, if not, then find the next 
   # occurance of it. I think.
   #
   # == Attributes
   #
-  # [start_date]  Date within frequency which to find the first occurrance.
+  # [event_start]  Date within frequency which to find the first occurrance.
   #
   # == Return
   #
-  # Returns a date which is the correct weekday (wday) next to +start_date+.
-  def first_group(start_date)
+  # Returns a date which is the correct weekday (wday) next to +event_start+.
+  def first_group(event_start)
     if @freq == :weekly
       # Grab the first wday within the schedule
       wday = decode_by_day[first_day][1]
       # Based off the start date add the number of days it takes to get to 
       # the correct week day.
-      # i.e. start_date is Friday (5) and wday is Monday(1)
-      # start_date + (1 - 5) = Friday - 4 = Monday of that week.
-      start_date + (wday - start_date.wday)
+      # i.e. event_start is Friday (5) and wday is Monday(1)
+      # event_start + (1 - 5) = Friday - 4 = Monday of that week.
+      event_start + (wday - event_start.wday)
     # elsif @freq == :monthly
     #   day = decode_by_day[first_day]
-    #   day_of_month(start_date.year,start_date.month,*day)
+    #   day_of_month(event_start.year,event_start.month,*day)
     end
   end
 
@@ -418,69 +485,5 @@ class Schedule
     first_occurrence + days_after
   end
 
-  ##
-  # Finds the next occurance of the schedule as long as it is between the two dates.
-  #
-  # This is invisioned to be a public method.
-  # 
-  # == Attributes
-  #
-  # [+after_date+]  Date which to search after.
-  #
-  # == Return
-  #
-  # Returns a date of when the next event happens after the search date.
-  def next_date(after_date)
-    # puts "\\nnext_date - start(#{start_date}) after(#{after_date})"
-    first_occurrence = next_occurrence(start_date,true)
-    # puts "  the first occurance is: #{first_occurrence}"
-
-    if after_date < first_occurrence
-      # puts "  return the first_occurrence"
-      first_occurrence
-    elsif n = next_occurrence(after_date)
-      n
-    # I don't like having this type of conditional here, but 
-    # `first_group` and `next_group` don't make sense for :monthly
-    elsif @freq == :monthly
-      next_occurrence(after_date,true)
-    else
-      # Find the first group for this event happened
-      first_group = first_group(first_occurrence)
-      # puts "  found first group (#{first_group}) now calling recursively"
-      next_date(next_group(first_group, after_date))
-    end
-  end
-
-  ##
-  # Get a list of events that happen between two dates.
-  #
-  # == Attributes
-  #
-  # [+date_start+]  Date on which you want the search to start.
-  # [+date_end+]    Date when you want the search to stop.
-  #
-  # == Return
-  #
-  # Returns an array of +Event+ structs each having +start_date+ 
-  # and +end_date+. These events will happen on or after the +date_start+
-  # and before +date_end+.
-  def events_between(date_start, date_end)
-
-    events = []
-    current_date = date_start
-
-    while current_date <= date_end
-      current_date = next_date(current_date)
-      if current_date <= date_end
-        events << Event.new(current_date, current_date + duration)
-      end
-      # add one day so it doesn't return the same day
-      # probably shouldn't need to do this
-      current_date += 1 
-    end
-
-    events
-  end
 
 end

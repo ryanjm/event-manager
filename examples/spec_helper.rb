@@ -13,9 +13,9 @@ def test_schedule(params,opts,tests)
   # Create the events
   events = schedule.events_between(opts[:start_search], opts[:end_search])
   
-  # Get the dates from the todos
-  start_dates = events.map(&:start_date)
-  end_dates = events.map(&:end_date)
+  # Get the dates from the hashes
+  start_dates = events.map { |i| i[:start_date] }
+  end_dates = events.map{ |i| i[:end_date] }
 
   # Get the dates from the tests hash
   s_dates = make_dates(tests[:start_dates])

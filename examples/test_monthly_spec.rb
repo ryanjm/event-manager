@@ -25,7 +25,7 @@ describe "Monthly Schedules" do
         days_of_week: ['Mo'],
         days_of_week_offset: "1",
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,1),
         end_search: Date.new(2013,3,31)
@@ -41,7 +41,7 @@ describe "Monthly Schedules" do
         days_of_week: ['Mo'],
         days_of_week_offset: "2",
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,1),
         end_search: Date.new(2013,5,31)
@@ -57,7 +57,7 @@ describe "Monthly Schedules" do
         days_of_week: ['Mo'],
         days_of_week_offset: "-1",
         duration: '0',
-        start_date: Date.new(2013,3,1)
+        event_start: Date.new(2013,3,1)
       },{
         start_search: Date.new(2013,3,1),
         end_search: Date.new(2013,5,31)
@@ -76,7 +76,7 @@ describe "Monthly Schedules" do
         interval: "1",
         days_of_month: ["1","15"],
         duration: "0",
-        start_date: Date.new(2013,2,20),
+        event_start: Date.new(2013,2,20),
       },{
         start_search: Date.new(2013,2,20),
         end_search: Date.new(2013,5,1)
@@ -92,7 +92,7 @@ describe "Monthly Schedules" do
         interval: "1",
         days_of_month: ["-1"],
         duration: "0",
-        start_date: Date.new(2013,3,20),
+        event_start: Date.new(2013,3,20),
       },{
         start_search: Date.new(2013,3,20),
         end_search: Date.new(2013,5,1)
