@@ -5,24 +5,24 @@ require './test/spec_helper.rb'
 # should handle if the options are invalid (crossing weekly, modifiers cross)
 
 describe Schedule do
-  describe "#convert_by_day" do
+  describe "#encode_by_day" do
     before(:each) do
       @schedule = Schedule.new
     end
 
     it "takes an one day and returns a simple string" do
       days = ["Mo"]
-      r = @schedule.convert_by_day(days)
+      r = @schedule.encode_by_day(days)
       r.should eq('mo')
     end
     it "takes an multiple days and returns a simple string" do
       days = ["Mo","We"]
-      r = @schedule.convert_by_day(days)
+      r = @schedule.encode_by_day(days)
       r.should eq('mo,we')
     end
     it "should handle an offset" do
       days = ["Mo","We"]
-      r = @schedule.convert_by_day(days,'2')
+      r = @schedule.encode_by_day(days,'2')
       r.should eq('2mo,2we')
     end
   end
@@ -30,7 +30,6 @@ describe Schedule do
   describe "#create" do
     it "takes simple hash of arguments for weekly" do
       params = {
-        name: "Every other Monday",
         freq: "weekly",
         interval: "2",
         days_of_week: ["Mo"],
@@ -38,7 +37,6 @@ describe Schedule do
       }
       s = Schedule.new
       s.create(params)
-      s.name.should eq("Every other Monday")
       s.freq.should eq(:weekly)
       s.interval.should eq(2)
       s.by_day.should eq('mo')
@@ -46,7 +44,6 @@ describe Schedule do
     end
     it "takes a hash for a monthly schedule" do
       params = {
-        name: "2nd Monday each month",
         freq: "monthly",
         interval: "1",
         days_of_week: ["Mo"],
@@ -55,7 +52,6 @@ describe Schedule do
       }
       s = Schedule.new
       s.create(params)
-      s.name.should eq("2nd Monday each month")
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq('2mo')
@@ -63,7 +59,6 @@ describe Schedule do
     end
     it "takes a hash for a complex monthly schedule" do
       params = {
-        name: "2nd Monday each month",
         freq: "monthly",
         interval: "1",
         days_of_week: ["Mo","We"],
@@ -72,7 +67,6 @@ describe Schedule do
       }
       s = Schedule.new
       s.create(params)
-      s.name.should eq("2nd Monday each month")
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq('2mo,2we')
@@ -80,7 +74,6 @@ describe Schedule do
     end
     it "takes a hash for days of month schedule" do
       params = {
-        name: "2nd Monday each month",
         freq: "monthly",
         interval: "1",
         days_of_month: ["2"],
@@ -88,7 +81,6 @@ describe Schedule do
       }
       s = Schedule.new
       s.create(params)
-      s.name.should eq("2nd Monday each month")
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq(nil)
@@ -97,7 +89,6 @@ describe Schedule do
     end
     it "takes a hash for multiple days of month schedule" do
       params = {
-        name: "2nd Monday each month",
         freq: "monthly",
         interval: "1",
         days_of_month: ["2","15"],
@@ -105,7 +96,6 @@ describe Schedule do
       }
       s = Schedule.new
       s.create(params)
-      s.name.should eq("2nd Monday each month")
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq(nil)
@@ -115,20 +105,8 @@ describe Schedule do
   end
 
   describe "#valid?" do
-    it "should be invalid if it is missing a name" do
-      params = {
-        freq: "weekly",
-        interval: "1",
-        days_of_week: ["Mo"],
-        duration: "2"
-      }
-      s = Schedule.new
-      s.create(params)
-      s.valid?.should be_false
-    end
     it "should be invalid if it is missing a freq" do
       params = {
-        name: "Every Monday",
         interval: "1",
         days_of_week: ["Mo"],
         duration: "2"
@@ -139,7 +117,6 @@ describe Schedule do
     end
     it "should be invalid if the duration is longer than the time between repetitions" do
       params = {
-        name: "Every Monday",
         freq: "weekly",
         interval: "1",
         days_of_week: ["Mo"],
@@ -188,9 +165,9 @@ describe Schedule do
       end
 
       it "returns the first group for date" do
-        start_date = Date.new(2013,3,5) # First Tuesday in March
-        first_group = Date.new(2013,3,4) # First Monday
-        @s.first_group(start_date).should eq(first_group)
+        event_start = DateTime.new(2013,3,5) # First Tuesday in March
+        first_group = DateTime.new(2013,3,4) # First Monday
+        @s.first_group(event_start).should eq(first_group)
       end
     end
     # context "monthly" do
@@ -207,9 +184,9 @@ describe Schedule do
     #     @s.create(params)
     #   end
     #   it "returns the first group for the date" do
-    #     start_date = Date.new(2013,3,5) # First Tuesday in March
-    #     first_group = Date.new(2013,3,4) # First Monday
-    #     @s.first_group(start_date).should eq(first_group)
+    #     event_start = DateTime.new(2013,3,5) # First Tuesday in March
+    #     first_group = DateTime.new(2013,3,4) # First Monday
+    #     @s.first_group(event_start).should eq(first_group)
     #   end
     # end
 
@@ -230,15 +207,15 @@ describe Schedule do
       end
 
       it "returns the first group if date is before start" do
-        first_occurance = Date.new(2013,3,4) # First Monday in March
-        start_search = Date.new(2013,3,3) # First Sunday
+        first_occurance = DateTime.new(2013,3,4) # First Monday in March
+        start_search = DateTime.new(2013,3,3) # First Sunday
         @s.next_group(first_occurance,start_search).should eq(first_occurance)
       end
 
       it "returns the next group if date is after last event in week" do
-        first_occurance = Date.new(2013,3,4) # First Monday in March
-        start_search = Date.new(2013,3,10) # Saturday
-        next_group = Date.new(2013,3,18) 
+        first_occurance = DateTime.new(2013,3,4) # First Monday in March
+        start_search = DateTime.new(2013,3,10) # Saturday
+        next_group = DateTime.new(2013,3,18) 
         @s.next_group(first_occurance,start_search).should eq(next_group)
       end
     end
@@ -257,15 +234,15 @@ describe Schedule do
     #   end
 
     #   it "returns the first group if date is before start" do
-    #     first_occurance = Date.new(2013,3,4) # First Monday in March
-    #     start_search = Date.new(2013,3,3) # First Sunday
+    #     first_occurance = DateTime.new(2013,3,4) # First Monday in March
+    #     start_search = DateTime.new(2013,3,3) # First Sunday
     #     @s.next_group(first_occurance,start_search).should eq(first_occurance)
     #   end
 
     #   it "returns the next group if date is after last event in week" do
-    #     first_occurance = Date.new(2013,3,4) # First Monday in March
-    #     start_search = Date.new(2013,3,10) # Saturday
-    #     next_group = Date.new(2013,4,1) 
+    #     first_occurance = DateTime.new(2013,3,4) # First Monday in March
+    #     start_search = DateTime.new(2013,3,10) # Saturday
+    #     next_group = DateTime.new(2013,4,1) 
     #     @s.next_group(first_occurance,start_search).should eq(next_group)
     #   end
     # end
@@ -273,7 +250,7 @@ describe Schedule do
 
   end
 
-  describe "#next_date" do
+  describe "#next_event_after" do
     context "weekly" do
       before(:each) do
         params = {
@@ -287,48 +264,48 @@ describe Schedule do
         @s.create(params)
       end
 
-      it "returns next event if the start_date and after_date is before the first event" do
+      it "returns next event if the event_start and after_date is before the first event" do
         # where the schedule originally starts (Sunday)
-        start_date = Date.new(2013,3,10)
+        @s.event_start = DateTime.new(2013,3,10)
         # what it is expecting (first Monday after the 10th)
-        first_instance = Date.new(2013,3,11)
-        @s.next_date(start_date,start_date).should eq(first_instance)
+        first_instance = DateTime.new(2013,3,11)
+        @s.next_event_after(@s.event_start).should eq(first_instance)
       end
 
       it "returns date if it is a valid starting date" do
         # where to start the search (Monday)
-        start_date = Date.new(2013,3,11)
-        @s.next_date(start_date,start_date).should eq(start_date)
+        @s.event_start = DateTime.new(2013,3,11)
+        @s.next_event_after(@s.event_start).should eq(@s.event_start)
       end
 
       it "returns date if it is the next occurance" do
         # where to start the search (Monday)
-        start_date = Date.new(2013,3,11)
-        next_date = Date.new(2013,3,25)
+        @s.event_start = DateTime.new(2013,3,11)
+        next_date = DateTime.new(2013,3,25)
 
-        @s.next_date(start_date,next_date).should eq(next_date)
+        @s.next_event_after(next_date).should eq(next_date)
       end
 
       it "returns next occurance even if it is over a week away" do
         # Start of the month - first instance should be Monday the 4th
-        start_date = Date.new(2013,3,2)
+        @s.event_start = DateTime.new(2013,3,2)
         # Start the search right after the first group (Saturday)
-        after_date = Date.new(2013,3,9)
+        after_date = DateTime.new(2013,3,9)
         # Should get the next instance, 2 weeks after the 4th
-        expected = Date.new(2013,3,18)
+        expected = DateTime.new(2013,3,18)
 
-        @s.next_date(start_date, after_date).should eq(expected)
+        @s.next_event_after(after_date).should eq(expected)
       end
 
       it "returns next occurance even if it starts on a weird day" do
         # Start of the month - first instance is Friday the 1st
-        start_date = Date.new(2013,3,1)
+        @s.event_start = DateTime.new(2013,3,1)
         # Start the search right after the first group (Saturday)
-        after_date = Date.new(2013,3,2)
+        after_date = DateTime.new(2013,3,2)
         # Should get the next instance, 2 weeks after the 4th
-        expected = Date.new(2013,3,11)
+        expected = DateTime.new(2013,3,11)
 
-        @s.next_date(start_date, after_date).should eq(expected)
+        @s.next_event_after(after_date).should eq(expected)
       end
 
     end
@@ -347,26 +324,26 @@ describe Schedule do
         @s.create(params)
       end
 
-      it "returns next event if the start_date and after_date is before the first event" do
+      it "returns next event if the event_start and after_date is before the first event" do
         # where the schedule originally starts (Sunday)
-        start_date = Date.new(2013,3,10)
+        @s.event_start = DateTime.new(2013,3,10)
         # what it is expecting (first Monday after the 10th)
-        first_instance = Date.new(2013,4,1)
-        @s.next_date(start_date,start_date).should eq(first_instance)
+        first_instance = DateTime.new(2013,4,1)
+        @s.next_event_after(@s.event_start).should eq(first_instance)
       end
 
       it "returns date if it is a valid starting date" do
         # where to start the search (Monday)
-        start_date = Date.new(2013,3,4)
-        @s.next_date(start_date,start_date).should eq(start_date)
+        @s.event_start = DateTime.new(2013,3,4)
+        @s.next_event_after(@s.event_start).should eq(@s.event_start)
       end
 
       it "returns date if it is the next occurance" do
         # where to start the search (Saturday)
-        start_date = Date.new(2013,3,2)
-        next_date = Date.new(2013,3,4)
+        @s.event_start = DateTime.new(2013,3,2)
+        next_date = DateTime.new(2013,3,4)
 
-        @s.next_date(start_date,next_date).should eq(next_date)
+        @s.next_event_after(next_date).should eq(next_date)
       end
 
     end
@@ -384,26 +361,26 @@ describe Schedule do
         @s.create(params)
       end 
 
-      it "returns next event if the start_date and after_date is before the first event" do
+      it "returns next event if the event_start and after_date is before the first event" do
         # where the schedule originally starts (Sunday)
-        start_date = Date.new(2013,2,20)
+        @s.event_start = DateTime.new(2013,2,20)
         # what it is expecting (first Monday after the 10th)
-        first_instance = Date.new(2013,3,1)
-        @s.next_date(start_date,start_date).should eq(first_instance)
+        first_instance = DateTime.new(2013,3,1)
+        @s.next_event_after(@s.event_start).should eq(first_instance)
       end
 
       it "returns date if it is a valid starting date" do
         # where to start the search (Monday)
-        start_date = Date.new(2013,3,15)
-        @s.next_date(start_date,start_date).should eq(start_date)
+        @s.event_start = DateTime.new(2013,3,15)
+        @s.next_event_after(@s.event_start).should eq(@s.event_start)
       end
 
       it "returns date if it is the next occurance" do
         # where to start the search (Saturday)
-        start_date = Date.new(2013,3,2)
-        next_date = Date.new(2013,3,15)
+        @s.event_start = DateTime.new(2013,3,2)
+        next_date = DateTime.new(2013,3,15)
 
-        @s.next_date(start_date,next_date).should eq(next_date)
+        @s.next_event_after(next_date).should eq(next_date)
       end
 
     end
@@ -426,32 +403,32 @@ describe Schedule do
 
       it "returns the first occurrence of an event given a date" do
         # where to start the search (March 10th is a Sunday)
-        start_date = Date.new(2013,3,10)
+        event_start = DateTime.new(2013,3,10)
         # what it is expecting (first Monday after the 10th)
-        first_instance = Date.new(2013,3,11)
+        first_instance = DateTime.new(2013,3,11)
 
-        @s.next_occurrence(start_date).should eq(first_instance)
+        @s.next_occurrence(event_start).should eq(first_instance)
       end
 
       it "returns the given date if it is a valid first occurance" do
-        first_instance = Date.new(2013,3,11)
+        first_instance = DateTime.new(2013,3,11)
 
         @s.next_occurrence(first_instance).should eq(first_instance)
       end
 
       it "returns the first occurrence, even it if it the following week" do
         # Tuesday
-        start_date = Date.new(2013,3,5)
+        event_start = DateTime.new(2013,3,5)
         # the following Monday
-        first_instance = Date.new(2013,3,11)
+        first_instance = DateTime.new(2013,3,11)
 
         # the true condition is for it to check the following week
-        @s.next_occurrence(start_date, true).should eq(first_instance)
+        @s.next_occurrence(event_start, true).should eq(first_instance)
       end
 
       it "returns nil if it runs out of days to check" do
-        start_date = Date.new(2013,3,5)
-        @s.next_occurrence(start_date).should eq(nil)
+        event_start = DateTime.new(2013,3,5)
+        @s.next_occurrence(event_start).should eq(nil)
       end
     end
     context "monthly weekday schedule" do
@@ -469,27 +446,27 @@ describe Schedule do
       end
 
       it "returns the first occurance for monthly schedules" do
-        start_date = Date.new(2013,3,2) # Saturday
-        first_instance = Date.new(2013,3,4) # Monday
+        event_start = DateTime.new(2013,3,2) # Saturday
+        first_instance = DateTime.new(2013,3,4) # Monday
 
-        @s.next_occurrence(start_date).should eq(first_instance)
+        @s.next_occurrence(event_start).should eq(first_instance)
       end
       it "returns the first occurance for monthly schedules - starting on the first" do
-        start_date = Date.new(2013,3,1) # Friday
-        first_instance = Date.new(2013,3,4) # Monday
+        event_start = DateTime.new(2013,3,1) # Friday
+        first_instance = DateTime.new(2013,3,4) # Monday
 
-        @s.next_occurrence(start_date, true).should eq(first_instance)
+        @s.next_occurrence(event_start, true).should eq(first_instance)
       end
       it "returns the following occurance for monthly schedules" do
-        start_date = Date.new(2013,3,5) # Tuesday
-        first_instance = Date.new(2013,4,1) # Monday
+        event_start = DateTime.new(2013,3,5) # Tuesday
+        first_instance = DateTime.new(2013,4,1) # Monday
 
-        @s.next_occurrence(start_date,true).should eq(first_instance)
+        @s.next_occurrence(event_start,true).should eq(first_instance)
       end
       it "returns nil if not found within month" do
-        start_date = Date.new(2013,3,5) # Tuesday
+        event_start = DateTime.new(2013,3,5) # Tuesday
 
-        @s.next_occurrence(start_date).should eq(nil)
+        @s.next_occurrence(event_start).should eq(nil)
       end
     end
     context "monthly day schedule" do
@@ -505,37 +482,37 @@ describe Schedule do
         @s.create(params)
       end      
       it "returns the first occurance for a monthly day schedule" do
-        start_date = Date.new(2013,3,1)
-        @s.next_occurrence(start_date).should eq(start_date)
+        event_start = DateTime.new(2013,3,1)
+        @s.next_occurrence(event_start).should eq(event_start)
       end
       it "returns the next occurance for a monthly day schedule" do
-        start_date = Date.new(2013,3,2)
-        first_instance = Date.new(2013,3,15)
-        @s.next_occurrence(start_date).should eq(first_instance)
+        event_start = DateTime.new(2013,3,2)
+        first_instance = DateTime.new(2013,3,15)
+        @s.next_occurrence(event_start).should eq(first_instance)
       end
       it "returns the next occurance for the next month schedule" do
-        start_date = Date.new(2013,3,16)
-        first_instance = Date.new(2013,4,1)
-        @s.next_occurrence(start_date,true).should eq(first_instance)
+        event_start = DateTime.new(2013,3,16)
+        first_instance = DateTime.new(2013,4,1)
+        @s.next_occurrence(event_start,true).should eq(first_instance)
       end
     end
   end
 
-  describe "#translate_by_day" do
+  describe "#decode_by_day" do
     it "converts simple days" do
       s = Schedule.new
       s.by_day = 'mo'
-      s.translate_by_day.should eq([[1,1]])
+      s.decode_by_day.should eq([[1,1]])
     end
     it "converts simple days multiple days" do
       s = Schedule.new
       s.by_day = 'mo,we,fr'
-      s.translate_by_day.should eq([[1,1],[1,3],[1,5]])
+      s.decode_by_day.should eq([[1,1],[1,3],[1,5]])
     end
     it "converts complex days" do
       s = Schedule.new
       s.by_day = '1mo,-2we' # no an option, but handles two cases
-      s.translate_by_day.should eq([[1,1],[-2,3]])
+      s.decode_by_day.should eq([[1,1],[-2,3]])
     end
   end
 
@@ -571,35 +548,158 @@ describe Schedule do
   describe "#day_of_month" do
     it "should return first day of the month - Friday" do
       s = Schedule.new
-      s.day_of_month(2013,3,1,5).should eq(Date.new(2013,3,1))
+      s.day_of_month(2013,3,1,5).should eq(DateTime.new(2013,3,1))
     end
     it "should return first day of the month - Monday" do
       s = Schedule.new
-      s.day_of_month(2013,4,1,1).should eq(Date.new(2013,4,1))
+      s.day_of_month(2013,4,1,1).should eq(DateTime.new(2013,4,1))
     end
     it "should return first Monday of the month" do
       s = Schedule.new
-      s.day_of_month(2013,3,1,1).should eq(Date.new(2013,3,4))
+      s.day_of_month(2013,3,1,1).should eq(DateTime.new(2013,3,4))
     end
     it "should return first Saturday of the month" do
       s = Schedule.new
-      s.day_of_month(2013,3,1,6).should eq(Date.new(2013,3,2))
+      s.day_of_month(2013,3,1,6).should eq(DateTime.new(2013,3,2))
     end
     it "should return second Monday of the month" do
       s = Schedule.new
-      s.day_of_month(2013,3,2,1).should eq(Date.new(2013,3,11))
+      s.day_of_month(2013,3,2,1).should eq(DateTime.new(2013,3,11))
     end
     it "should return last Monday of the month" do
       s = Schedule.new
-      s.day_of_month(2013,3,-1,1).should eq(Date.new(2013,3,25))
+      s.day_of_month(2013,3,-1,1).should eq(DateTime.new(2013,3,25))
     end
     it "should return last day of the month" do
       s = Schedule.new
-      s.day_of_month(2013,3,-1,0).should eq(Date.new(2013,3,31))
+      s.day_of_month(2013,3,-1,0).should eq(DateTime.new(2013,3,31))
     end
     it "should return last instance of day if offset is too large" do
       s = Schedule.new
-      s.day_of_month(2013,3,5,1).should eq(Date.new(2013,3,25))
+      s.day_of_month(2013,3,5,1).should eq(DateTime.new(2013,3,25))
+    end
+  end
+
+  describe "#events_between" do
+    context "biweekly" do
+      before(:each) do
+        params = {
+          freq: "weekly",
+          interval: "2",
+          days_of_week: ["Mo"],
+          duration: "1",
+          event_start: DateTime.new(2013,3,1)
+        }
+        @schedule = Schedule.new
+        @schedule.create(params)
+      end
+
+      it "creates events between two dates" do
+        event_start = DateTime.new(2013,3,3)
+        end_date = DateTime.new(2013,3,28)
+
+        events = @schedule.events_between(event_start,end_date)
+
+        expect1 = DateTime.new(2013,3,4)
+        expect2 = DateTime.new(2013,3,18)
+
+        events.length.should eq(2)
+        events[0][:start_date].should eq(expect1)
+        events[1][:start_date].should eq(expect2)
+      end
+
+      it "creates events between two dates, using block" do
+        event_start = DateTime.new(2013,3,3)
+        end_date = DateTime.new(2013,3,28)
+
+        expect1 = DateTime.new(2013,3,4)
+        expect2 = DateTime.new(2013,3,18)
+        expectations = [expect1, expect2]
+        
+        
+        events = []
+        @schedule.events_between(event_start,end_date) do |event|
+          events << event
+        end
+
+        events.length.should eq(2)
+        events[0][:start_date].should eq(expect1)
+        events[1][:start_date].should eq(expect2)
+      end
+
+      it "creates events between two dates, with varying timezones" do
+        event_start = DateTime.new(2013,3,3,0,0,0,'-6')
+        end_date = DateTime.new(2013,3,28,0,0,0,'-6')
+
+        @schedule.event_start = DateTime.new(2013,3,1,0,0,0,'-6')
+        events = @schedule.events_between(event_start,end_date)
+
+        expect1 = DateTime.new(2013,3,3,23,0,0,'-7')
+        expect2 = DateTime.new(2013,3,17,23,0,0,'-7')
+
+        events.length.should eq(2)
+        events[0][:start_date].should eq(expect1)
+        events[1][:start_date].should eq(expect2)
+      end
+    end
+
+    context "weekly" do
+      before(:each) do
+        params = {
+          freq: "weekly",
+          interval: "1",
+          days_of_week: ["Mo","We","Fr"],
+          duration: "0",
+          event_start: DateTime.new(2013,3,3)
+        }
+        @schedule = Schedule.new
+        @schedule.create(params)
+      end
+
+      it "creates events between two dates" do
+        event_start = DateTime.new(2013,3,3)
+        end_date = DateTime.new(2013,3,17)
+        
+        events = @schedule.events_between(event_start,end_date)
+
+        mo1 = DateTime.new(2013,3,4)
+        we1 = DateTime.new(2013,3,6)
+        fr1 = DateTime.new(2013,3,8)
+
+        mo2 = DateTime.new(2013,3,11)
+        we2 = DateTime.new(2013,3,13)
+        fr2 = DateTime.new(2013,3,15)
+
+        events.length.should eq(6)
+        events[0][:start_date].should eq(mo1)
+        events[1][:start_date].should eq(we1)
+        events[2][:start_date].should eq(fr1)
+        events[3][:start_date].should eq(mo2)
+        events[4][:start_date].should eq(we2)
+        events[5][:start_date].should eq(fr2)
+      end
+
+      it "creates events between two dates, with ad-hoc start date" do
+        event_start = DateTime.new(2013,3,3)
+        end_date = DateTime.new(2013,3,17)
+        ad_hoc_start = DateTime.new(2013,3,5)
+        
+        events = @schedule.events_between(event_start,end_date, ad_hoc_start)
+
+        we1 = DateTime.new(2013,3,6)
+        fr1 = DateTime.new(2013,3,8)
+        
+        mo2 = DateTime.new(2013,3,11)
+        we2 = DateTime.new(2013,3,13)
+        fr2 = DateTime.new(2013,3,15)
+
+        events.length.should eq(5)
+        events[0][:start_date].should eq(we1)
+        events[1][:start_date].should eq(fr1)
+        events[2][:start_date].should eq(mo2)
+        events[3][:start_date].should eq(we2)
+        events[4][:start_date].should eq(fr2)
+      end
     end
   end
 end

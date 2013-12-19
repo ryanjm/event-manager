@@ -28,7 +28,7 @@ Now when you are figuring out the next occurrence after a given date (`after_dat
 
 ### Other Methods
 
-`next_date`, `next_occurrence`, and `next_group` are really the heart and sole of this code. Those would be the best places to start.
+`next_event_after`, `next_occurrence`, and `next_group` are really the heart and sole of this code. Those would be the best places to start.
 
 `next_date` has been described above since that is the API the user should be using.
 

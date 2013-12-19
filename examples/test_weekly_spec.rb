@@ -1,4 +1,4 @@
-require './test/spec_helper.rb'
+require_relative 'spec_helper.rb'
 
 
 #      March 2013
@@ -24,9 +24,9 @@ describe "Weekly Schedules" do
         freq: 'weekly',
         interval: '1',
         days_of_week: ['Mo'],
-        duration: '0'
+        duration: '0',
+        event_start: Date.new(2013,3,1)
       },{
-        start_schedule: Date.new(2013,3,1),
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
       },{
@@ -40,9 +40,9 @@ describe "Weekly Schedules" do
         freq: 'weekly',
         interval: '1',
         days_of_week: ['We'],
-        duration: '1'
+        duration: '1',
+        event_start: Date.new(2013,3,1)
       },{
-        start_schedule: Date.new(2013,3,1),
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
       },{
@@ -56,9 +56,9 @@ describe "Weekly Schedules" do
         freq: 'weekly',
         interval: '1',
         days_of_week: ['Mo','We'],
-        duration: '0'
+        duration: '0',
+        event_start: Date.new(2013,3,1)
       },{
-        start_schedule: Date.new(2013,3,1),
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
       },{
@@ -74,9 +74,9 @@ describe "Weekly Schedules" do
         freq: 'weekly',
         interval: '2',
         days_of_week: ['Mo','We'],
-        duration: '0'
+        duration: '0',
+        event_start: Date.new(2013,3,1)
       },{
-        start_schedule: Date.new(2013,3,1),
         start_search: Date.new(2013,3,5),
         end_search: Date.new(2013,3,25)
       },{
