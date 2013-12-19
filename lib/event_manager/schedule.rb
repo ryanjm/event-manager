@@ -10,8 +10,7 @@ It is HIGHLY suggested to read through the entire section before reading this co
 
 TODO:
 
-- Add ability to use a block for events_between
-- Add ability to give events_between a date
+- Add ability to give events_between a start date
 
 == Attributes
 
@@ -112,7 +111,9 @@ class Schedule
     while current_date <= date_end
       current_date = next_date(current_date)
       if current_date <= date_end
-        events << {start_date: current_date, end_date: current_date + duration}
+        event = {start_date: current_date, end_date: current_date + duration}
+        yield(event) if block_given?
+        events << event
       end
       # add one day so it doesn't return the same day
       # probably shouldn't need to do this

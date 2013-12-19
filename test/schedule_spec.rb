@@ -608,6 +608,25 @@ describe Schedule do
         events[0][:start_date].should eq(expect1)
         events[1][:start_date].should eq(expect2)
       end
+
+      it "creates todos between two dates, using block" do
+        event_start = Date.new(2013,3,3)
+        end_date = Date.new(2013,3,28)
+
+        expect1 = Date.new(2013,3,4)
+        expect2 = Date.new(2013,3,18)
+        expectations = [expect1, expect2]
+        
+        
+        events = []
+        @schedule.events_between(event_start,end_date) do |event|
+          events << event
+        end
+
+        events.length.should eq(2)
+        events[0][:start_date].should eq(expect1)
+        events[1][:start_date].should eq(expect2)
+      end
     end
 
     context "weekly" do
