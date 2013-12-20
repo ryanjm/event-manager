@@ -1,13 +1,15 @@
-require './test/spec_helper.rb'
+require './spec/spec_helper.rb'
 # should be able to ask when the next occurance of that scheudle is, after a given date
 # given ScheduleItems, should be able to find if a scheduleItem is already created for an occurance (and structure) 
 
 # should handle if the options are invalid (crossing weekly, modifiers cross)
 
-describe Schedule do
+class Dummy; include EventManager; end
+
+describe EventManager do
   describe "#encode_by_day" do
     before(:each) do
-      @schedule = Schedule.new
+      @schedule = Dummy.new
     end
 
     it "takes an one day and returns a simple string" do
@@ -35,7 +37,7 @@ describe Schedule do
         days_of_week: ["Mo"],
         duration: "1"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.freq.should eq(:weekly)
       s.interval.should eq(2)
@@ -50,7 +52,7 @@ describe Schedule do
         days_of_week_offset: "2",
         duration: "0"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
@@ -65,7 +67,7 @@ describe Schedule do
         days_of_week_offset: "2",
         duration: "0"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
@@ -79,7 +81,7 @@ describe Schedule do
         days_of_month: ["2"],
         duration: "0"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
@@ -94,7 +96,7 @@ describe Schedule do
         days_of_month: ["2","15"],
         duration: "0"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
@@ -111,7 +113,7 @@ describe Schedule do
         days_of_week: ["Mo"],
         duration: "2"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.valid?.should be_false
     end
@@ -122,7 +124,7 @@ describe Schedule do
         days_of_week: ["Mo"],
         duration: "8"
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.valid?.should be_false
     end
@@ -134,7 +136,7 @@ describe Schedule do
         freq: "weekly",
         interval: "1",
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.frequency_length.should eq(7)
     end
@@ -144,7 +146,7 @@ describe Schedule do
         freq: "weekly",
         interval: "2",
       }
-      s = Schedule.new
+      s = Dummy.new
       s.create(params)
       s.frequency_length.should eq(14)
     end
@@ -160,7 +162,7 @@ describe Schedule do
           days_of_week: ["Mo", "We", "Fr"],
           duration: "1"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -180,7 +182,7 @@ describe Schedule do
     #       days_of_week_offset: "1",
     #       duration: "0"
     #     }
-    #     @s = Schedule.new
+    #     @s = Dummy.new
     #     @s.create(params)
     #   end
     #   it "returns the first group for the date" do
@@ -202,7 +204,7 @@ describe Schedule do
           days_of_week: ["Mo", "We", "Fr"],
           duration: "1"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -229,7 +231,7 @@ describe Schedule do
     #       days_of_week_offset: "1",
     #       duration: "0"
     #     }
-    #     @s = Schedule.new
+    #     @s = Dummy.new
     #     @s.create(params)
     #   end
 
@@ -260,7 +262,7 @@ describe Schedule do
           days_of_week: ["Mo", "We", "Fr"],
           duration: "1"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -320,7 +322,7 @@ describe Schedule do
           days_of_week_offset: "1",
           duration: "0"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -357,7 +359,7 @@ describe Schedule do
           days_of_month: ["1","15"],
           duration: "0"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end 
 
@@ -397,7 +399,7 @@ describe Schedule do
           days_of_week: ["Mo"],
           duration: "1"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -441,7 +443,7 @@ describe Schedule do
           days_of_week_offset: "1",
           duration: "0"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end
 
@@ -478,7 +480,7 @@ describe Schedule do
           days_of_month: ["1","15"],
           duration: "0"
         }
-        @s = Schedule.new
+        @s = Dummy.new
         @s.create(params)
       end      
       it "returns the first occurance for a monthly day schedule" do
@@ -500,17 +502,17 @@ describe Schedule do
 
   describe "#decode_by_day" do
     it "converts simple days" do
-      s = Schedule.new
+      s = Dummy.new
       s.by_day = 'mo'
       s.decode_by_day.should eq([[1,1]])
     end
     it "converts simple days multiple days" do
-      s = Schedule.new
+      s = Dummy.new
       s.by_day = 'mo,we,fr'
       s.decode_by_day.should eq([[1,1],[1,3],[1,5]])
     end
     it "converts complex days" do
-      s = Schedule.new
+      s = Dummy.new
       s.by_day = '1mo,-2we' # no an option, but handles two cases
       s.decode_by_day.should eq([[1,1],[-2,3]])
     end
@@ -526,7 +528,7 @@ describe Schedule do
           days_of_week: ["We","Mo","Fr"],
           duration: "1"
         }
-        s = Schedule.new
+        s = Dummy.new
         s.create(params)
         s.first_day.should eq(1)
       end
@@ -538,7 +540,7 @@ describe Schedule do
           days_of_week: ["We","Fr"],
           duration: "1"
         }
-        s = Schedule.new
+        s = Dummy.new
         s.create(params)
         s.first_day.should eq(0)
       end
@@ -547,35 +549,35 @@ describe Schedule do
 
   describe "#day_of_month" do
     it "should return first day of the month - Friday" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,1,5).should eq(DateTime.new(2013,3,1))
     end
     it "should return first day of the month - Monday" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,4,1,1).should eq(DateTime.new(2013,4,1))
     end
     it "should return first Monday of the month" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,1,1).should eq(DateTime.new(2013,3,4))
     end
     it "should return first Saturday of the month" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,1,6).should eq(DateTime.new(2013,3,2))
     end
     it "should return second Monday of the month" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,2,1).should eq(DateTime.new(2013,3,11))
     end
     it "should return last Monday of the month" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,-1,1).should eq(DateTime.new(2013,3,25))
     end
     it "should return last day of the month" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,-1,0).should eq(DateTime.new(2013,3,31))
     end
     it "should return last instance of day if offset is too large" do
-      s = Schedule.new
+      s = Dummy.new
       s.day_of_month(2013,3,5,1).should eq(DateTime.new(2013,3,25))
     end
   end
@@ -590,7 +592,7 @@ describe Schedule do
           duration: "1",
           event_start: DateTime.new(2013,3,1)
         }
-        @schedule = Schedule.new
+        @schedule = Dummy.new
         @schedule.create(params)
       end
 
@@ -652,7 +654,7 @@ describe Schedule do
           duration: "0",
           event_start: DateTime.new(2013,3,3)
         }
-        @schedule = Schedule.new
+        @schedule = Dummy.new
         @schedule.create(params)
       end
 

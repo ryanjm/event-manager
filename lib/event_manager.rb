@@ -1,6 +1,7 @@
-require "event_manager/version"
-require "event_manager/schedule"
+require_relative "event_manager/version"
+require_relative "event_manager/schedule"
 
 module EventManager
-  # Your code goes here...
+
 end
+
