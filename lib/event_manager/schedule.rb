@@ -40,13 +40,13 @@ module EventManager
 
     ##
     # set the default values
-    def initialize
-      @interval = 1
-      @wkst = :mo
-      @id = rand(100)
-      @duration = 0 # 1 day
-      @event_start = DateTime.new
-    end
+    # def initialize
+    #   @interval = 1
+    #   @wkst = :mo
+    #   @id = rand(100)
+    #   @duration = 0 # 1 day
+    #   @event_start = DateTime.new
+    # end
 
     # The list of frequencies currently supported
     FREQ = [:weekly, :monthly]
@@ -234,7 +234,7 @@ module EventManager
     # Right now this is a pretty simple validation. Just 
     # need to make sure the +@freq+ is set and that the
     # +@duration+ is longer than the frequency_length
-    def valid?
+    def event_valid?
       if @freq.nil?
         false
       elsif frequency_length < @duration

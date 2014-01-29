@@ -2,16 +2,16 @@
 
 This kind of serves as a general TO-DO list and a small projection of where the project is headed.
 
-## v0.0.2
+## v0.0.1
 
 The goal here is to clean up the API and be able to publish this as a gem.
 
 - Be able to add `event_manager` to a model and get the following methods
 - `valid_event_manager?` - to validate if the event related fields are filled out and valid.
-- Have working tests for gem with TavisCI
 
 ## v0.0.3
 
+- Have working tests for gem with TavisCI
 
 ## v0.1.0
 

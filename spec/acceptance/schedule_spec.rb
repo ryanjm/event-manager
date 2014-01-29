@@ -6,10 +6,10 @@ require './spec/spec_helper.rb'
 
 class Dummy; include EventManager; end
 
-describe EventManager do
+describe EventManager::Schedule do
   describe "#encode_by_day" do
     before(:each) do
-      @schedule = Dummy.new
+      @schedule = Event.new
     end
 
     it "takes an one day and returns a simple string" do
@@ -106,7 +106,7 @@ describe EventManager do
     end
   end
 
-  describe "#valid?" do
+  describe "#event_valid?" do
     it "should be invalid if it is missing a freq" do
       params = {
         interval: "1",
@@ -115,7 +115,7 @@ describe EventManager do
       }
       s = Dummy.new
       s.create(params)
-      s.valid?.should be_false
+      s.event_valid?.should be_false
     end
     it "should be invalid if the duration is longer than the time between repetitions" do
       params = {
@@ -126,7 +126,7 @@ describe EventManager do
       }
       s = Dummy.new
       s.create(params)
-      s.valid?.should be_false
+      s.event_valid?.should be_false
     end
   end
 
@@ -549,35 +549,35 @@ describe EventManager do
 
   describe "#day_of_month" do
     it "should return first day of the month - Friday" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,1,5).should eq(DateTime.new(2013,3,1))
     end
     it "should return first day of the month - Monday" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,4,1,1).should eq(DateTime.new(2013,4,1))
     end
     it "should return first Monday of the month" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,1,1).should eq(DateTime.new(2013,3,4))
     end
     it "should return first Saturday of the month" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,1,6).should eq(DateTime.new(2013,3,2))
     end
     it "should return second Monday of the month" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,2,1).should eq(DateTime.new(2013,3,11))
     end
     it "should return last Monday of the month" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,-1,1).should eq(DateTime.new(2013,3,25))
     end
     it "should return last day of the month" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,-1,0).should eq(DateTime.new(2013,3,31))
     end
     it "should return last instance of day if offset is too large" do
-      s = Dummy.new
+      s = Event.new(event_start: DateTime.new(2013,3,3,0,0,0,'0'))
       s.day_of_month(2013,3,5,1).should eq(DateTime.new(2013,3,25))
     end
   end
