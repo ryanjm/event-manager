@@ -35,3 +35,9 @@ Now when you are figuring out the next occurrence after a given date (`after_dat
 `next_occurrence` does all the hard math behind scheduling. The big thing is figuring out how to get numbers of a given date. So this might bean figuring out days of the week (0 = Sun, 1 = Mon, etc) or days of month.
 
 `next_group` is used for weekly schedules. A "group" in this context is the days of the week attribute. So if the schedule is MWF then it will return the Monday of the schedule after a given date. If you give it a Wednesday, it will give you the following Monday (assuming it is an interval of 1).
+
+## References for the gem
+
+[Crafting Gems](http://railsconftutorials.com/2013/sessions/crafting_gems.html) tutorial was used to set up some of the structure of this app. Might be a good place to start if you are trying to understand the overall layout.
+
+[Combustion](https://github.com/pat/combustion) is used to help simplify the setting up of a basic Rails app for testing.

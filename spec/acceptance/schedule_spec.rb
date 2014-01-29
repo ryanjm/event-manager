@@ -29,6 +29,8 @@ describe EventManager::Schedule do
     end
   end
 
+  # TODO: split this into seperate methods
+  # test validation of attributes
   describe "#create" do
     it "takes simple hash of arguments for weekly" do
       params = {
@@ -39,6 +41,8 @@ describe EventManager::Schedule do
       }
       s = Dummy.new
       s.create(params)
+      # Should be:
+      # s = Event.create(params)
       s.freq.should eq(:weekly)
       s.interval.should eq(2)
       s.by_day.should eq('mo')
