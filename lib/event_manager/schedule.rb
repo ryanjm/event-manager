@@ -12,16 +12,16 @@ It is HIGHLY suggested to read through the entire section before reading this co
 
 [freq]          identifies type of recurrance. i.e. :daily, :weekly, :monthly (required)
 [interval]      how often to repeat (positive value, default = 1). Interval of 2 would be "every other [freq]"
-[by_day]        list of days, with possible value in front. (see ics BYDAY). 
-                  i.e. [MO,TU] would be Monday and Tuesday. [1MO,2TU] would be first monday (of the month) 
+[by_day]        list of days, with possible value in front. (see ics BYDAY).
+                  i.e. [MO,TU] would be Monday and Tuesday. [1MO,2TU] would be first monday (of the month)
                   and 2nd Tuesday (of the month).
-[by_month_day]  integer representing day in month, postive or negative. 
+[by_month_day]  integer representing day in month, postive or negative.
                   i.e. [4] would be the 4th of the month. [-2,-4] would be the 2nd to last day and 4th to last day.
 [wkst]          defines when the week starts (defaults to Monday) - can't currently change
-[duration]      breaking from ics a little here - ics assumes start/end dates to figure out how long 
-                  an event should be and how to repeat it. I'm changing it a little by having a 
-                  duration in _days_. My approach is for the schedule to define when something is 
-                  DUE, and then duration should be how many days the event is. 
+[duration]      breaking from ics a little here - ics assumes start/end dates to figure out how long
+                  an event should be and how to repeat it. I'm changing it a little by having a
+                  duration in _days_. My approach is for the schedule to define when something is
+                  DUE, and then duration should be how many days the event is.
 [event_start]    when this schedule should go into effect.
 
 =end
@@ -29,7 +29,7 @@ It is HIGHLY suggested to read through the entire section before reading this co
 module EventManager
   module Schedule
 
-    attr_accessor :freq 
+    attr_accessor :freq
     attr_accessor :interval
     attr_accessor :by_day
     attr_accessor :by_month_day
@@ -58,7 +58,7 @@ module EventManager
     # Finds the next occurance of the schedule as long as it is between the two dates.
     #
     # This is invisioned to be a public method.
-    # 
+    #
     # == Attributes
     #
     # [+after_date+]  Date which to search after.
@@ -73,7 +73,7 @@ module EventManager
         first_occurrence
       elsif n = next_occurrence(after_date)
         n
-        # I don't like having this type of conditional here, but 
+        # I don't like having this type of conditional here, but
         # `first_group` and `next_group` don't make sense for :monthly
       elsif @freq == :monthly
         next_occurrence(after_date,true)
@@ -94,7 +94,7 @@ module EventManager
     #
     # == Return
     #
-    # Returns an array of +Event+ structs each having +event_start+ 
+    # Returns an array of +Event+ structs each having +event_start+
     # and +end_date+. These events will happen on or after the +date_start+
     # and before +date_end+.
     def events_between(date_start, date_end, start = event_start)
@@ -111,7 +111,7 @@ module EventManager
         end
         # add one day so it doesn't return the same day
         # probably shouldn't need to do this
-        current_date += 1 
+        current_date += 1
       end
 
       events
@@ -169,7 +169,7 @@ module EventManager
     def day_of_month(year,month,offset,wday, tz_offset = event_start.offset)
       first = DateTime.new(year,month,1,0,0,0, tz_offset) # first day of month
       last = DateTime.new(year,month,1,0,0,0, tz_offset).next_month - 1 # grab the last day
-      if offset > 0 
+      if offset > 0
         # offset to get to the right wday
         wday_offset = wday - first.wday
         # if the start of the week is actually greater, then add 7 to to first instance
@@ -231,7 +231,7 @@ module EventManager
     ##
     # Check to see if the schedule is valid
     #
-    # Right now this is a pretty simple validation. Just 
+    # Right now this is a pretty simple validation. Just
     # need to make sure the +@freq+ is set and that the
     # +@duration+ is longer than the frequency_length
     def valid?
@@ -247,7 +247,7 @@ module EventManager
     ##
     # This is just used for the validation method.
     #
-    # This is a pretty simplistic view. Might not be robust 
+    # This is a pretty simplistic view. Might not be robust
     # enough going forward. Especially monthly.
     def frequency_length
       if @freq == :daily
@@ -264,12 +264,12 @@ module EventManager
     #
     # == Return
     #
-    # It returns a nested array. The outside array is for each day. 
+    # It returns a nested array. The outside array is for each day.
     # The inside array always has two elements. The first is the offset,
     # the second is the day of the week number (wday).
-    # An example would be the "second Monday of the month" which would 
+    # An example would be the "second Monday of the month" which would
     # look like: [2,1]
-    #  
+    #
     # Examples:
     # 'mo' => [[1,1]]
     # 'mo,we,fr' => [[1,1],[1,3],[1,5]]
@@ -287,11 +287,11 @@ module EventManager
     end
 
     ##
-    # Used for the +:weekly+ and +:monthly+ frequencies. This 
+    # Used for the +:weekly+ and +:monthly+ frequencies. This
     # takes the output of +decode_by_day+, sorts it, and then
     # returns the index of the first day in the group.
     #
-    # This normally shouldn't _need_ to do anything. They should 
+    # This normally shouldn't _need_ to do anything. They should
     # be in order, but that can't be gurenteed coming from the form.
     # Maybe instead this should be sorted before saving to the db.
     #
@@ -311,24 +311,24 @@ module EventManager
     #
     # This does not take into account the interval.
     #
-    # This is the most complicated method since it does deal with the logic 
+    # This is the most complicated method since it does deal with the logic
     # for each kind of frequency.
     #
     # == Attributes
     #
     # [+event_start+]  What date to search after.
-    # [+continue+]    This option is if it should look into the following 
-    #                   freq or not (i.ee look at the next week). 
+    # [+continue+]    This option is if it should look into the following
+    #                   freq or not (i.ee look at the next week).
     #
     # == Return
     #
-    # It will return the date of the next time an event will happen within 
-    # the frequency. If it doesn't find one it will return +nil+, unless 
+    # It will return the date of the next time an event will happen within
+    # the frequency. If it doesn't find one it will return +nil+, unless
     # +continue+ is true, in which case it will go to the next frequency.
     def next_occurrence(start, continue=false)
       if @freq == :weekly
         wday = start.wday
-        days = decode_by_day # i.e. [[1,1]] - 
+        days = decode_by_day # i.e. [[1,1]] -
         # we want the first occurance where wday <= given day
         # example: schedule is [:mo,:we,:fr]
         # days = [[1,1],[1,3],[1,5]]
@@ -351,7 +351,7 @@ module EventManager
         start + (day - wday)
       elsif @freq == :monthly && @by_day
         # Given the start we can grab month/year
-        # go through each of the days and 
+        # go through each of the days and
         # return if it is greater than start
         # else ask if it needs to go to the following month (recursion)
         days = decode_by_day
@@ -368,13 +368,13 @@ module EventManager
           nil
         end
       elsif @freq == :monthly && @by_month_day
-        # Given start we know the day of month and we loop around 
-        # by_month_day until we find one bigger (unless negative). If not, retun nil unless continue = true, 
+        # Given start we know the day of month and we loop around
+        # by_month_day until we find one bigger (unless negative). If not, retun nil unless continue = true,
         # in which case, grab the first one from by_month, and get it from the next month
         start_days_in_month = Time.days_in_month(start.month, start.year)
         neg_start = start.mday - start_days_in_month
         month_days = @by_month_day.split(',').map(&:to_i).sort
-        day_index = month_days.index do |mday| 
+        day_index = month_days.index do |mday|
           if mday < 0
             # handle negatives
             neg_start <= mday
@@ -382,7 +382,7 @@ module EventManager
             start.mday <= mday
           end
         end
-        if !day_index.nil?
+        if !day_index.nil? && month_days[day_index] <= start_days_in_month
           day = month_days[day_index]
           DateTime.new(start.year, start.month, day,0,0,0, start.offset)
         elsif continue
@@ -397,14 +397,14 @@ module EventManager
     # Returns the first day for the frequency. Might not be the first occurrence.
     #
     # TODO: Looks like this is only being used for +:weekly+. I think this
-    # ended up with the multiple +elseif+ within +next_occurrence+ due to 
+    # ended up with the multiple +elseif+ within +next_occurrence+ due to
     # edge cases. Totally up for restructuring the logic for these methods.
     #
     # TODO: looks like there might be an edge case that isn't being handled.
-    # This could return a date that is _before_ your +event_start+. That is if 
+    # This could return a date that is _before_ your +event_start+. That is if
     # it is MWF and you give it Saturday, it will give you Monday of that week.
     # Therefore when you use this method, you should have to check to see
-    # if it is infact greater than +event_start+, if not, then find the next 
+    # if it is infact greater than +event_start+, if not, then find the next
     # occurance of it. I think.
     #
     # == Attributes
@@ -418,7 +418,7 @@ module EventManager
       if @freq == :weekly
         # Grab the first wday within the schedule
         wday = decode_by_day[first_day][1]
-        # Based off the start date add the number of days it takes to get to 
+        # Based off the start date add the number of days it takes to get to
         # the correct week day.
         # i.e. event_start is Friday (5) and wday is Monday(1)
         # event_start + (1 - 5) = Friday - 4 = Monday of that week.

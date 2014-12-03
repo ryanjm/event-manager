@@ -1,6 +1,6 @@
 require './spec/spec_helper.rb'
 # should be able to ask when the next occurance of that scheudle is, after a given date
-# given ScheduleItems, should be able to find if a scheduleItem is already created for an occurance (and structure) 
+# given ScheduleItems, should be able to find if a scheduleItem is already created for an occurance (and structure)
 
 # should handle if the options are invalid (crossing weekly, modifiers cross)
 
@@ -42,7 +42,7 @@ describe EventManager do
       s.freq.should eq(:weekly)
       s.interval.should eq(2)
       s.by_day.should eq('mo')
-      s.duration.should eq(1) 
+      s.duration.should eq(1)
     end
     it "takes a hash for a monthly schedule" do
       params = {
@@ -57,7 +57,7 @@ describe EventManager do
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq('2mo')
-      s.duration.should eq(0) 
+      s.duration.should eq(0)
     end
     it "takes a hash for a complex monthly schedule" do
       params = {
@@ -72,7 +72,7 @@ describe EventManager do
       s.freq.should eq(:monthly)
       s.interval.should eq(1)
       s.by_day.should eq('2mo,2we')
-      s.duration.should eq(0) 
+      s.duration.should eq(0)
     end
     it "takes a hash for days of month schedule" do
       params = {
@@ -87,7 +87,7 @@ describe EventManager do
       s.interval.should eq(1)
       s.by_day.should eq(nil)
       s.by_month_day.should eq('2')
-      s.duration.should eq(0) 
+      s.duration.should eq(0)
     end
     it "takes a hash for multiple days of month schedule" do
       params = {
@@ -102,7 +102,7 @@ describe EventManager do
       s.interval.should eq(1)
       s.by_day.should eq(nil)
       s.by_month_day.should eq('2,15')
-      s.duration.should eq(0) 
+      s.duration.should eq(0)
     end
   end
 
@@ -115,7 +115,7 @@ describe EventManager do
       }
       s = Dummy.new
       s.create(params)
-      s.valid?.should be_false
+      expect(s.valid?).to be false
     end
     it "should be invalid if the duration is longer than the time between repetitions" do
       params = {
@@ -126,7 +126,7 @@ describe EventManager do
       }
       s = Dummy.new
       s.create(params)
-      s.valid?.should be_false
+      expect(s.valid?).to be false
     end
   end
 
@@ -217,7 +217,7 @@ describe EventManager do
       it "returns the next group if date is after last event in week" do
         first_occurance = DateTime.new(2013,3,4) # First Monday in March
         start_search = DateTime.new(2013,3,10) # Saturday
-        next_group = DateTime.new(2013,3,18) 
+        next_group = DateTime.new(2013,3,18)
         @s.next_group(first_occurance,start_search).should eq(next_group)
       end
     end
@@ -244,7 +244,7 @@ describe EventManager do
     #   it "returns the next group if date is after last event in week" do
     #     first_occurance = DateTime.new(2013,3,4) # First Monday in March
     #     start_search = DateTime.new(2013,3,10) # Saturday
-    #     next_group = DateTime.new(2013,4,1) 
+    #     next_group = DateTime.new(2013,4,1)
     #     @s.next_group(first_occurance,start_search).should eq(next_group)
     #   end
     # end
@@ -361,7 +361,7 @@ describe EventManager do
         }
         @s = Dummy.new
         @s.create(params)
-      end 
+      end
 
       it "returns next event if the event_start and after_date is before the first event" do
         # where the schedule originally starts (Sunday)
@@ -482,7 +482,7 @@ describe EventManager do
         }
         @s = Dummy.new
         @s.create(params)
-      end      
+      end
       it "returns the first occurance for a monthly day schedule" do
         event_start = DateTime.new(2013,3,1)
         @s.next_occurrence(event_start).should eq(event_start)
@@ -496,6 +496,28 @@ describe EventManager do
         event_start = DateTime.new(2013,3,16)
         first_instance = DateTime.new(2013,4,1)
         @s.next_occurrence(event_start,true).should eq(first_instance)
+      end
+    end
+    context "monthly day schedule for shorter months" do
+      before :each do
+        params = {
+          name: "30th of the Month",
+          freq: "monthly",
+          interval: "1",
+          days_of_month: ["30"],
+          duration: "0"
+        }
+        @s = Dummy.new
+        @s.create(params)
+      end
+      it "returns the nil if date doesn't exist in current month" do
+        event_start = DateTime.new(2015,2,1)
+        @s.next_occurrence(event_start).should eq(nil)
+      end
+      it "returns the next month if date doesn't exist in current month and continue is true" do
+        event_start = DateTime.new(2015,2,1)
+        first_instance = DateTime.new(2015,3,30)
+        @s.next_occurrence(event_start, true).should eq(first_instance)
       end
     end
   end
@@ -617,8 +639,8 @@ describe EventManager do
         expect1 = DateTime.new(2013,3,4)
         expect2 = DateTime.new(2013,3,18)
         expectations = [expect1, expect2]
-        
-        
+
+
         events = []
         @schedule.events_between(event_start,end_date) do |event|
           events << event
@@ -661,7 +683,7 @@ describe EventManager do
       it "creates events between two dates" do
         event_start = DateTime.new(2013,3,3)
         end_date = DateTime.new(2013,3,17)
-        
+
         events = @schedule.events_between(event_start,end_date)
 
         mo1 = DateTime.new(2013,3,4)
@@ -685,12 +707,12 @@ describe EventManager do
         event_start = DateTime.new(2013,3,3)
         end_date = DateTime.new(2013,3,17)
         ad_hoc_start = DateTime.new(2013,3,5)
-        
+
         events = @schedule.events_between(event_start,end_date, ad_hoc_start)
 
         we1 = DateTime.new(2013,3,6)
         fr1 = DateTime.new(2013,3,8)
-        
+
         mo2 = DateTime.new(2013,3,11)
         we2 = DateTime.new(2013,3,13)
         fr2 = DateTime.new(2013,3,15)
